@@ -1,7 +1,8 @@
 import os
 from warnings import filterwarnings
 
-from fastapi import FastAPI, Form, HTTPException, status
+from typing import Optional
+from fastapi import FastAPI, Form, HTTPException, status, Cookie, Response
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import mechanicalsoup
@@ -20,6 +21,7 @@ BASE_URL = os.environ.get('BASE_URL')
 app = FastAPI()
 origins = [
     "http://localhost:3000",
+    "localhost:3000",
 ]
 
 app.add_middleware(
@@ -65,19 +67,20 @@ async def root():
 @app.get("/start")
 def get_cookie():
     if browser.get_cookiejar().get('PHPSESSID'):
-        return ''
+        return
     browser.open(f'{BASE_URL}acceso.php', verify=False)
-    if not browser.get_cookiejar().get('PHPSESSID'):
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Error")
-    return 'good'
+    if browser.get_cookiejar().get('PHPSESSID'):
+        return
+    raise HTTPException(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
 @app.post("/login")
 def login(
+        response: Response,
         usuario: str = Form(default=None),
-        contrasena: str = Form(default=None)):
+        contrasena: str = Form(default=None)
+):
     browser.open(f'{BASE_URL}acceso.php', verify=False, allow_redirects=False)
     browser.select_form()
     browser['usuario'] = usuario
@@ -85,28 +88,64 @@ def login(
     browser['tipo'] = 'a'
     # print(browser.get_current_form().print_summary())
     browser.submit_selected()
+    print(browser.get_cookiejar())
+    for key, value in browser.get_cookiejar().iteritems():
+        response.set_cookie(
+            key=key,
+            value=value,
+            samesite='None',
+            secure=True
+        )
+    # TODO: Remove cookies for stateless login
+    # Response.
     # TODO: Maybe pass no redirect
     # Add validation of being logged in
     return 'logged in'
 
 
+# @app.get('/calif')
+# def calif():
+#     if not browser.get_cookiejar().get('PHPSESSID'):
+#         raise HTTPException(status_code=401)
+#     browser.open(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php', verify=False)
+#     # TODO: Remove tec_estilo.css
+#     # browser
+#     browser.get_current_page().find('link').extract()
+#     return str(browser.get_current_page())
+#     # return s.cookies.get('PHPSESSID')
+
+
+# @app.get('/session', status_code=status.HTTP_204_NO_CONTENT)
+# def session():
+#     if not browser.get_cookiejar().get('PHPSESSID'):
+#         raise HTTPException(status_code=401)
+#     if browser.get(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php', verify=False) == NOAUTH:
+#         raise HTTPException(status_code=401)
+
 @app.get('/calif')
-def calif():
-    if not browser.get_cookiejar().get('PHPSESSID'):
+def calif(phpsessid: Optional[str] = Cookie(None,alias='PHPSESSID')):
+    if not phpsessid:
         raise HTTPException(status_code=401)
+    print(phpsessid)
+    x = mechanicalsoup.StatefulBrowser()
+    x.session.headers.update(HEADERS)
+    x.session.cookies.set('PHPSESSID', phpsessid)
+    x.open(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php', verify=False)
     browser.open(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php', verify=False)
-    # TODO: Remove tec_estilo.css
     # browser
-    browser.get_current_page().find('link').extract()
-    return str(browser.get_current_page())
+    x.get_current_page().find('link').extract()
+    return str(x.get_current_page())
     # return s.cookies.get('PHPSESSID')
 
 
 @app.get('/session', status_code=status.HTTP_204_NO_CONTENT)
-def session():
-    if not browser.get_cookiejar().get('PHPSESSID'):
+def session(phpsessid: str = Cookie(None, title='PHPSESSID')):
+    if not phpsessid:
         raise HTTPException(status_code=401)
-    if browser.get(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php', verify=False) == NOAUTH:
+    x = mechanicalsoup.StatefulBrowser()
+    x.session.headers.update(HEADERS)
+    x.session.cookies.set('PHPSESSID', phpsessid)
+    if x.get(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php', verify=False) == NOAUTH:
         raise HTTPException(status_code=401)
 
 
