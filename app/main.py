@@ -6,6 +6,7 @@ from fastapi import FastAPI, Form, HTTPException, status, Cookie, Response
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import mechanicalsoup
+from starlette.status import HTTP_400_BAD_REQUEST
 # from pydantic import BaseModel
 
 from urllib3.exceptions import InsecureRequestWarning
@@ -78,17 +79,22 @@ def root():
 @app.post("/login")
 def login(
         response: Response,
-        usuario: str = Form(default=None),
-        contrasena: str = Form(default=None)
+        usuario: str = Form(default=None,min_length=8,max_length=8),
+        contrasena: str = Form(default=None,min_length=4,max_length=4)
 ):
+    if not usuario or not contrasena:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
     browser.open(f'{BASE_URL}acceso.php', verify=False, allow_redirects=False)
     browser.select_form()
     browser['usuario'] = usuario
     browser['contrasena'] = contrasena
     browser['tipo'] = 'a'
-    # print(browser.get_current_form().print_summary())
     browser.submit_selected()
-    print(browser.get_cookiejar())
+
+    if browser.get_current_page().find('td',{'id':'rojo'}):
+        raise HTTPException(status_code=401)
+    # print(browser.get_cookiejar())
     for key, value in browser.get_cookiejar().iteritems():
         response.set_cookie(
             key=key,
@@ -99,7 +105,6 @@ def login(
     # TODO: Remove cookies for stateless login
     # Response.
     # TODO: Maybe pass no redirect
-    # Add validation of being logged in
     return 'logged in'
 
 
