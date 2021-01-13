@@ -55,7 +55,7 @@ browser.session.headers.update(HEADERS)
 # browser.set_verbose(2)
 
 @app.get("/")
-async def root():
+def root():
     return {"message": "Hello World"}
 
 
