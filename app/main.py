@@ -87,6 +87,8 @@ def login(
 
     browser.open(f'{BASE_URL}acceso.php', verify=False, allow_redirects=False)
     browser.select_form()
+    if not browser.get_current_form():
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     browser['usuario'] = usuario
     browser['contrasena'] = contrasena
     browser['tipo'] = 'a'
@@ -102,28 +104,9 @@ def login(
             samesite='None',
             secure=True
         )
-    # TODO: Remove cookies for stateless login
+    browser.session.cookies.clear_session_cookies()
     return 'logged in'
 
-
-# @app.get('/calif')
-# def calif():
-#     if not browser.get_cookiejar().get('PHPSESSID'):
-#         raise HTTPException(status_code=401)
-#     browser.open(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php', verify=False)
-#     # TODO: Remove tec_estilo.css
-#     # browser
-#     browser.get_current_page().find('link').extract()
-#     return str(browser.get_current_page())
-#     # return s.cookies.get('PHPSESSID')
-
-
-# @app.get('/session', status_code=status.HTTP_204_NO_CONTENT)
-# def session():
-#     if not browser.get_cookiejar().get('PHPSESSID'):
-#         raise HTTPException(status_code=401)
-#     if browser.get(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php', verify=False) == NOAUTH:
-#         raise HTTPException(status_code=401)
 
 @app.get('/calif')
 def calif(phpsessid: Optional[str] = Cookie(None,alias='PHPSESSID')):
@@ -135,10 +118,8 @@ def calif(phpsessid: Optional[str] = Cookie(None,alias='PHPSESSID')):
     x.session.cookies.set('PHPSESSID', phpsessid)
     x.open(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php', verify=False)
     browser.open(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php', verify=False)
-    # browser
     x.get_current_page().find('link').extract()
     return str(x.get_current_page())
-    # return s.cookies.get('PHPSESSID')
 
 
 @app.get('/session', status_code=status.HTTP_204_NO_CONTENT)
@@ -148,7 +129,7 @@ def session(phpsessid: str = Cookie(None, alias='PHPSESSID')):
     x = mechanicalsoup.StatefulBrowser()
     x.session.headers.update(HEADERS)
     x.session.cookies.set('PHPSESSID', phpsessid)
-    if x.get(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php', verify=False) == NOAUTH:
+    if x.get(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php', verify=False).content == NOAUTH:
         raise HTTPException(status_code=401)
 
 
