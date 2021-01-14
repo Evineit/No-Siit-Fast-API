@@ -121,8 +121,15 @@ def session(phpsessid: str = Cookie(None, alias='PHPSESSID')):
         raise HTTPException(status_code=401)
 
 
-@app.get('/signout')
-def logout():
-    res = browser.get(f'{BASE_URL}cerrar_sesion.php', verify=False)
-    # browser.close()
-    return "Signed out", res.status_code
+@app.get('/signout', status_code=status.HTTP_204_NO_CONTENT)
+def logout(phpsessid: str = Cookie(None, alias='PHPSESSID')):
+    if not phpsessid:
+        raise HTTPException(status_code=400)
+    x = mechanicalsoup.StatefulBrowser()
+    x.session.headers.update(HEADERS)
+    x.session.cookies.set('PHPSESSID', phpsessid)
+    
+    res = x.get(f'{BASE_URL}cerrar_sesion.php', verify=False)
+    if not res.ok:
+        raise HTTPException(status_code=res.status_code)
+
