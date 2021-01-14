@@ -94,7 +94,7 @@ def login(
 
     if browser.get_current_page().find('td',{'id':'rojo'}):
         raise HTTPException(status_code=401)
-    # print(browser.get_cookiejar())
+    
     for key, value in browser.get_cookiejar().iteritems():
         response.set_cookie(
             key=key,
@@ -103,8 +103,6 @@ def login(
             secure=True
         )
     # TODO: Remove cookies for stateless login
-    # Response.
-    # TODO: Maybe pass no redirect
     return 'logged in'
 
 

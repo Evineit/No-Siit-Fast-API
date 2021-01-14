@@ -1,13 +1,14 @@
-from warnings import filterwarnings
+import os
 
 from fastapi.testclient import TestClient
 from fastapi import status
-from urllib3.exceptions import InsecureRequestWarning
+from dotenv import load_dotenv
 
 import main
 
 client = TestClient(main.app)
-filterwarnings(action='ignore', category=InsecureRequestWarning)
+load_dotenv()
+
 
 def test_read_main():
     response = client.get("/")
@@ -28,3 +29,44 @@ def test_login_invalid_data():
 def test_session_no_cookie():
     response = client.get("/session")
     assert response.status_code == 401
+
+
+def test_session_invalid_session():
+    response = client.get("/session", cookies={"PHPSESSID": "randomsessid"})
+    assert response.status_code == 401
+
+
+def test_login_correct_data():
+    response_login = client.post(
+        "/login",
+        data={
+            "usuario": os.environ.get("VALID_USER"),
+            "contrasena": os.environ.get("VALID_PASS"),
+        },
+    )
+    session_cookies = client.cookies.get_dict()
+    response_session = client.get("/session",cookies=session_cookies)
+    assert response_login.status_code == status.HTTP_200_OK
+    assert response_session.status_code == status.HTTP_204_NO_CONTENT
+
+def test_no_session_between_tests():
+    response = client.get("/session")
+    assert response.status_code == 401
+
+
+def test_login_no_duplicate_session():
+    client_2 = TestClient(main.app)
+    response_client_1 = client.post(
+        "/login",
+        data={
+            "usuario": os.environ.get("VALID_USER"),
+            "contrasena": os.environ.get("VALID_PASS"),
+        }
+    )
+    session_1_cookies = client.cookies.get_dict()
+    response_client_1_session = client.get("/session", cookies=session_1_cookies)
+
+    response_client_2_session = client_2.get("/session")
+    assert response_client_1.status_code == 200
+    assert response_client_1_session.status_code == 204
+    assert response_client_2_session.status_code == 401
