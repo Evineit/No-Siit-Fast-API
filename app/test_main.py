@@ -3,6 +3,7 @@ import os
 from fastapi.testclient import TestClient
 from fastapi import status
 from dotenv import load_dotenv
+from starlette.status import HTTP_400_BAD_REQUEST
 
 import main
 
@@ -70,3 +71,11 @@ def test_login_no_duplicate_session():
     assert response_client_1.status_code == 200
     assert response_client_1_session.status_code == 204
     assert response_client_2_session.status_code == 401
+
+def test_signout_no_session():
+    response = client.get("/signout")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+def test_signout_session():
+    response = client.get("/signout", cookies={"PHPSESSID": "test"})
+    assert response.status_code == status.HTTP_204_NO_CONTENT

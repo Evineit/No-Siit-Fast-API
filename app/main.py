@@ -65,17 +65,6 @@ def root():
 #     return render_template('index.html')
 
 
-# @app.get("/start")
-# def get_cookie():
-#     if browser.get_cookiejar().get('PHPSESSID'):
-#         return
-#     browser.open(f'{BASE_URL}acceso.php', verify=False)
-#     if browser.get_cookiejar().get('PHPSESSID'):
-#         return
-#     raise HTTPException(
-#         status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
-
-
 @app.post("/login")
 def login(
         response: Response,
@@ -112,7 +101,6 @@ def login(
 def calif(phpsessid: Optional[str] = Cookie(None,alias='PHPSESSID')):
     if not phpsessid:
         raise HTTPException(status_code=401)
-    print(phpsessid)
     x = mechanicalsoup.StatefulBrowser()
     x.session.headers.update(HEADERS)
     x.session.cookies.set('PHPSESSID', phpsessid)
