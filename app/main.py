@@ -1,15 +1,14 @@
 import os
+from typing import Optional
 from warnings import filterwarnings
 
-from typing import Optional
+import mechanicalsoup
+from dotenv import load_dotenv
 from fastapi import FastAPI, Form, HTTPException, status, Cookie, Response
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
-import mechanicalsoup
-from starlette.status import HTTP_400_BAD_REQUEST
-# from pydantic import BaseModel
-
 from urllib3.exceptions import InsecureRequestWarning
+
+# from pydantic import BaseModel
 
 # class User(BaseModel):
 #     usuario: str
@@ -66,7 +65,7 @@ def root():
 # def hello_world():
 #     return render_template('index.html')
 
-    """Cookies is not cleared if login fails. Cookie can be the same of the
+"""Cookies is not cleared if login fails. Cookie can be the same of the
     last attempt because it's not linked to any logged account,
     and its slower to delete cookie in every failure"""
 @app.post("/login")
