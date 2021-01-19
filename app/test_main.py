@@ -100,3 +100,23 @@ def test_signout_no_session():
 def test_signout_session():
     response = client.get("/signout", cookies={"PHPSESSID": "test"})
     assert response.status_code == status.HTTP_200_OK
+
+def test_signout_valid_session():
+    response_client_1 = client.post(
+        "/login",
+        data={
+            "usuario": os.environ.get("VALID_USER"),
+            "contrasena": os.environ.get("VALID_PASS"),
+        }
+    )
+    session_1_cookies = client.cookies.get_dict()
+    response_client_session = client.get("/session", cookies=session_1_cookies)
+    assert response_client_1.status_code == 200
+    assert response_client_session.status_code == status.HTTP_200_OK
+
+    logout_response = client.get("/signout", cookies=session_1_cookies)
+    assert logout_response.status_code == status.HTTP_200_OK
+
+    response_client_session_after = client.get("/session", cookies=session_1_cookies)
+    assert response_client_session_after.status_code == status.HTTP_401_UNAUTHORIZED
+
