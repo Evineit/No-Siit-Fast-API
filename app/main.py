@@ -1,12 +1,10 @@
 import os
 from typing import Optional
-from warnings import filterwarnings
 
 import mechanicalsoup
 from dotenv import load_dotenv
 from fastapi import FastAPI, Form, HTTPException, status, Cookie, Response
 from fastapi.middleware.cors import CORSMiddleware
-from urllib3.exceptions import InsecureRequestWarning
 
 # from pydantic import BaseModel
 
@@ -16,8 +14,8 @@ from urllib3.exceptions import InsecureRequestWarning
 
 
 load_dotenv()
-filterwarnings(action='ignore', category=InsecureRequestWarning)
 BASE_URL = os.environ.get('BASE_URL')
+CERT_PEM_PATH = os.environ.get('CERT_PEM_PATH')
 app = FastAPI()
 origins = [
     "http://localhost:3000",
@@ -76,7 +74,7 @@ def login(
 ):
     if not usuario or not contrasena:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
-    browser.open(f'{BASE_URL}acceso.php', verify=False, allow_redirects=False)
+    browser.open(f'{BASE_URL}acceso.php', verify=CERT_PEM_PATH, allow_redirects=False)
     browser.select_form()
     if not browser.get_current_form():
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -101,19 +99,16 @@ def login(
 def calif(phpsessid: Optional[str] = Cookie(None,alias='PHPSESSID')):
     if not phpsessid:
         raise HTTPException(status_code=401)
-    x = mechanicalsoup.StatefulBrowser()
-    x.session.headers.update(HEADERS)
-    x.session.cookies.set('PHPSESSID', phpsessid)
-    x.open(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php', verify=False)
-    x.get_current_page().find('link').extract()
-    return str(x.get_current_page())
+    browser.open(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php',cookies={'PHPSESSID':phpsessid}, verify=CERT_PEM_PATH)
+    browser.get_current_page().find('link').extract()
+    return str(browser.get_current_page())
 
 
 @app.get('/session')
 def session(phpsessid: str = Cookie(None, alias='PHPSESSID')):
     if not phpsessid:
         raise HTTPException(status_code=401)
-    if browser.get(f'{BASE_URL}modulos/cons/alumnos/manto_alumno.php',cookies={'PHPSESSID':phpsessid},verify=False, allow_redirects=False).content == NOAUTH:        
+    if browser.get(f'{BASE_URL}modulos/cons/alumnos/manto_alumno.php',cookies={'PHPSESSID':phpsessid},verify=CERT_PEM_PATH, allow_redirects=False).content == NOAUTH:        
         raise HTTPException(status_code=401)
     return {'message': 'You are logged in'}
 
@@ -122,8 +117,7 @@ def session(phpsessid: str = Cookie(None, alias='PHPSESSID')):
 def logout(phpsessid: str = Cookie(None, alias='PHPSESSID')):
     if not phpsessid:
         raise HTTPException(status_code=400)
-
-    res = browser.get(f'{BASE_URL}cerrar_sesion.php',cookies={'PHPSESSID':phpsessid}, verify=False, allow_redirects=False)
+    res = browser.get(f'{BASE_URL}cerrar_sesion.php',cookies={'PHPSESSID':phpsessid}, verify=CERT_PEM_PATH, allow_redirects=False)
     if not res.ok:
         raise HTTPException(status_code=res.status_code)
 
