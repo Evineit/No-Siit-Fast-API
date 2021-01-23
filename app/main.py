@@ -53,6 +53,7 @@ browser.session.headers.update(HEADERS)
 browser.session.verify = CERT_PEM_PATH
 # browser.set_verbose(2)
 
+
 @app.get("/")
 def root():
     return {"message": "Hello World"}
