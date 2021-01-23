@@ -109,26 +109,21 @@ def calif(phpsessid: Optional[str] = Cookie(None,alias='PHPSESSID')):
     return str(x.get_current_page())
 
 
-@app.get('/session', status_code=status.HTTP_204_NO_CONTENT)
+@app.get('/session')
 def session(phpsessid: str = Cookie(None, alias='PHPSESSID')):
     if not phpsessid:
         raise HTTPException(status_code=401)
-    browser.session.cookies.set('PHPSESSID', phpsessid)
-    if browser.get(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php', verify=False).content == NOAUTH:
-        browser.session.cookies.clear()
+    if browser.get(f'{BASE_URL}modulos/cons/alumnos/manto_alumno.php',cookies={'PHPSESSID':phpsessid},verify=False, allow_redirects=False).content == NOAUTH:        
         raise HTTPException(status_code=401)
-    browser.session.cookies.clear()
+    return {'message': 'You are logged in'}
 
 
-@app.get('/signout', status_code=status.HTTP_204_NO_CONTENT)
+@app.get('/signout')
 def logout(phpsessid: str = Cookie(None, alias='PHPSESSID')):
     if not phpsessid:
         raise HTTPException(status_code=400)
-    browser.session.cookies.set('PHPSESSID', phpsessid)
-    
-    res = browser.get(f'{BASE_URL}cerrar_sesion.php', verify=False)
+
+    res = browser.get(f'{BASE_URL}cerrar_sesion.php',cookies={'PHPSESSID':phpsessid}, verify=False, allow_redirects=False)
     if not res.ok:
-        browser.session.cookies.clear()
         raise HTTPException(status_code=res.status_code)
-    browser.session.cookies.clear()
 
