@@ -50,8 +50,7 @@ HEADERS = {
 
 browser = mechanicalsoup.StatefulBrowser(user_agent=HEADERS.get('User-Agent'))
 browser.session.headers.update(HEADERS)
-
-
+browser.session.verify = CERT_PEM_PATH
 # browser.set_verbose(2)
 
 @app.get("/")
@@ -74,15 +73,14 @@ def login(
 ):
     if not usuario or not contrasena:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
-    browser.open(f'{BASE_URL}acceso.php', verify=CERT_PEM_PATH, allow_redirects=False)
+    browser.open(f'{BASE_URL}acceso.php', allow_redirects=False)
     browser.select_form()
     if not browser.get_current_form():
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     browser['usuario'] = usuario
     browser['contrasena'] = contrasena
     browser['tipo'] = 'a'
-    x =  browser.submit_selected()
-    if x.content == FAIL_AUTH:
+    if browser.submit_selected().content == FAIL_AUTH:
         raise HTTPException(status_code=401)
     for key, value in browser.get_cookiejar().iteritems():
         response.set_cookie(
@@ -99,7 +97,7 @@ def login(
 def calif(phpsessid: Optional[str] = Cookie(None,alias='PHPSESSID')):
     if not phpsessid:
         raise HTTPException(status_code=401)
-    browser.open(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php',cookies={'PHPSESSID':phpsessid}, verify=CERT_PEM_PATH)
+    browser.open(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php',cookies={'PHPSESSID':phpsessid})
     browser.get_current_page().find('link').extract()
     return str(browser.get_current_page())
 
@@ -108,7 +106,7 @@ def calif(phpsessid: Optional[str] = Cookie(None,alias='PHPSESSID')):
 def session(phpsessid: str = Cookie(None, alias='PHPSESSID')):
     if not phpsessid:
         raise HTTPException(status_code=401)
-    if browser.get(f'{BASE_URL}modulos/cons/alumnos/manto_alumno.php',cookies={'PHPSESSID':phpsessid},verify=CERT_PEM_PATH, allow_redirects=False).content == NOAUTH:        
+    if browser.get(f'{BASE_URL}modulos/cons/alumnos/manto_alumno.php',cookies={'PHPSESSID':phpsessid}, allow_redirects=False).content == NOAUTH:        
         raise HTTPException(status_code=401)
     return {'message': 'You are logged in'}
 
@@ -117,7 +115,7 @@ def session(phpsessid: str = Cookie(None, alias='PHPSESSID')):
 def logout(phpsessid: str = Cookie(None, alias='PHPSESSID')):
     if not phpsessid:
         raise HTTPException(status_code=400)
-    res = browser.get(f'{BASE_URL}cerrar_sesion.php',cookies={'PHPSESSID':phpsessid}, verify=CERT_PEM_PATH, allow_redirects=False)
+    res = browser.get(f'{BASE_URL}cerrar_sesion.php',cookies={'PHPSESSID':phpsessid}, allow_redirects=False)
     if not res.ok:
         raise HTTPException(status_code=res.status_code)
 
