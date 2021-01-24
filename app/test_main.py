@@ -37,7 +37,7 @@ def test_session_invalid_session():
 
 
 def test_login_correct_data():
-    session_cookies = login_get_cookies()
+    session_cookies = login_and_get_cookies()
     response_session = client.get("/session", cookies=session_cookies)
     assert response_session.status_code == status.HTTP_200_OK
 
@@ -49,7 +49,7 @@ def test_no_session_between_tests():
 
 def test_login_no_duplicate_session():
     client_2 = TestClient(main.app)
-    session_1_cookies = login_get_cookies()
+    session_1_cookies = login_and_get_cookies()
     response_client_1_session = client.get("/session", cookies=session_1_cookies)
 
     response_client_2_session = client_2.get("/session")
@@ -68,9 +68,24 @@ def test_calif_invalid_session():
 
 
 def test_calif_valid_session():
-    session_1_cookies = login_get_cookies()
+    session_1_cookies = login_and_get_cookies()
     response_client_1_session = client.get("/session", cookies=session_1_cookies)
     assert response_client_1_session.status_code == status.HTTP_200_OK
+
+
+def test_kardex_no_session():
+    response = client.get("/kardex")
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_kardex_invalid_session():
+    response = client.get("/kardex", cookies={"PHPSESSID": "test"})
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_kardex_valid_session():
+    response = client.get("/kardex", cookies=login_and_get_cookies())
+    assert response.status_code == status.HTTP_200_OK
 
 
 def test_signout_no_session():
@@ -84,7 +99,7 @@ def test_signout_session():
 
 
 def test_signout_valid_session():
-    session_1_cookies = login_get_cookies()
+    session_1_cookies = login_and_get_cookies()
     response_client_session = client.get("/session", cookies=session_1_cookies)
     assert response_client_session.status_code == status.HTTP_200_OK
 
@@ -95,7 +110,7 @@ def test_signout_valid_session():
     assert response_client_session_after.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def login_get_cookies():
+def login_and_get_cookies():
     response_client_1 = client.post(
         "/login",
         data={
