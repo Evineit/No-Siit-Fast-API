@@ -63,7 +63,7 @@ def test_calif_no_session():
 
 
 def test_calif_invalid_session():
-    response = client.get("/calif")
+    response = client.get("/calif", cookies={"PHPSESSID": "test"})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
