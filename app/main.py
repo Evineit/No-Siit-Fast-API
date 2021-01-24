@@ -98,7 +98,8 @@ def login(
 def calif(phpsessid: Optional[str] = Cookie(None,alias='PHPSESSID')):
     if not phpsessid:
         raise HTTPException(status_code=401)
-    browser.open(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php',cookies={'PHPSESSID':phpsessid})
+    if browser.open(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php', cookies={'PHPSESSID':phpsessid}).content == NOAUTH:
+        raise HTTPException(status_code=401)
     browser.get_current_page().find('link').extract()
     return str(browser.get_current_page())
 
@@ -107,7 +108,7 @@ def calif(phpsessid: Optional[str] = Cookie(None,alias='PHPSESSID')):
 def session(phpsessid: str = Cookie(None, alias='PHPSESSID')):
     if not phpsessid:
         raise HTTPException(status_code=401)
-    if browser.get(f'{BASE_URL}modulos/cons/alumnos/manto_alumno.php',cookies={'PHPSESSID':phpsessid}, allow_redirects=False).content == NOAUTH:        
+    if browser.get(f'{BASE_URL}modulos/cons/alumnos/manto_alumno.php', cookies={'PHPSESSID':phpsessid}, allow_redirects=False).content == NOAUTH:
         raise HTTPException(status_code=401)
     return {'message': 'You are logged in'}
 
