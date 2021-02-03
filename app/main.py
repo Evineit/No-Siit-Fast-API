@@ -20,6 +20,7 @@ app = FastAPI()
 origins = [
     "http://localhost:3000",
     "localhost:3000",
+    "https://nosiit.live",
 ]
 
 app.add_middleware(
