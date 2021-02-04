@@ -6,12 +6,6 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Form, HTTPException, status, Cookie, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-# from pydantic import BaseModel
-
-# class User(BaseModel):
-#     usuario: str
-#     contrasena: str
-
 
 load_dotenv()
 BASE_URL = os.environ.get('BASE_URL')
@@ -52,17 +46,12 @@ HEADERS = {
 browser = mechanicalsoup.StatefulBrowser(user_agent=HEADERS.get('User-Agent'))
 browser.session.headers.update(HEADERS)
 browser.session.verify = CERT_PEM_PATH
-# browser.set_verbose(2)
 
 
 @app.get("/")
 def root():
     return {"message": "Hello World"}
 
-
-# @app.route("/")
-# def hello_world():
-#     return render_template('index.html')
 
 """Cookies is not cleared if login fails. Cookie can be the same of the
     last attempt because it's not linked to any logged account,
@@ -97,20 +86,14 @@ def login(
 
 @app.get('/calif')
 def calif(phpsessid: Optional[str] = Cookie(None,alias='PHPSESSID')):
-    if not phpsessid:
-        raise HTTPException(status_code=401)
-    if browser.open(f'{BASE_URL}modulos/alu//cons/calif_parciales_adeudo.php', cookies={'PHPSESSID': phpsessid}).content == NOAUTH:
-        raise HTTPException(status_code=401)
+    check_authorized_and_open(phpsessid, URL='modulos/alu//cons/calif_parciales_adeudo.php')
     browser.get_current_page().find('link').extract()
     return str(browser.get_current_page())
 
 
 @app.get('/kardex')
 def kardex(phpsessid: str = Cookie(None, alias='PHPSESSID')):
-    if not phpsessid:
-        raise HTTPException(status_code=401)
-    if browser.open(f'{BASE_URL}modulos/cons/alumnos/kardex.php', cookies={'PHPSESSID': phpsessid}).content == NOAUTH:
-        raise HTTPException(status_code=401)
+    check_authorized_and_open(phpsessid, URL='modulos/cons/alumnos/kardex.php')
     return str(browser.get_current_page())
 
 
@@ -131,3 +114,9 @@ def logout(phpsessid: str = Cookie(None, alias='PHPSESSID')):
     if not res.ok:
         raise HTTPException(status_code=res.status_code)
 
+
+def check_authorized_and_open(phpsessid, URL):
+    if not phpsessid:
+        raise HTTPException(status_code=401)
+    if browser.open(f'{BASE_URL}{URL}', cookies={'PHPSESSID': phpsessid}, allow_redirects=False).content == NOAUTH:
+        raise HTTPException(status_code=401)
