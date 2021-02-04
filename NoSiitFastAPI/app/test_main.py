@@ -73,6 +73,11 @@ def test_calif_valid_session():
     assert response_client_1_session.status_code == status.HTTP_200_OK
 
 
+def test_calif_remove_unnecessary_link():
+    session_1_cookies = login_and_get_cookies()
+    response_client_1_session = client.get("/session", cookies=session_1_cookies)
+    assert "<link" not in response_client_1_session.text
+
 def test_kardex_no_session():
     response = client.get("/kardex")
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
