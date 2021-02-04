@@ -93,6 +93,21 @@ def test_kardex_valid_session():
     assert response.status_code == status.HTTP_200_OK
 
 
+def test_avance_ret_no_session():
+    response = client.get("/avance_reticular")
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    
+
+def test_avance_ret_invalid_session():
+    response = client.get("/avance_reticular", cookies={"PHPSESSID": "test"})
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_avance_ret_valid_session():
+    response = client.get("/avance_reticular", cookies=login_and_get_cookies())
+    assert response.status_code == status.HTTP_200_OK
+
+
 def test_signout_no_session():
     response = client.get("/signout")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
