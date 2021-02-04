@@ -97,6 +97,12 @@ def kardex(phpsessid: str = Cookie(None, alias='PHPSESSID')):
     return str(browser.get_current_page())
 
 
+@app.get('/avance_reticular')
+def avance_reticular(phpsessid: str = Cookie(None, alias='PHPSESSID')):
+    check_authorized_and_open(phpsessid, URL='modulos/cons/alumnos/avance_reticular.php')
+    return str(browser.get_current_page())
+
+
 @app.get('/session')
 def session(phpsessid: str = Cookie(None, alias='PHPSESSID')):
     if not phpsessid:
