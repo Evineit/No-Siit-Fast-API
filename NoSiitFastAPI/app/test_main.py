@@ -89,7 +89,8 @@ def test_kardex_invalid_session():
 
 
 def test_kardex_valid_session():
-    response = client.get("/kardex", cookies=login_and_get_cookies())
+    session_1_cookies = login_and_get_cookies()
+    response = client.get("/kardex", cookies=session_1_cookies)
     assert response.status_code == status.HTTP_200_OK
 
 
@@ -104,7 +105,8 @@ def test_avance_ret_invalid_session():
 
 
 def test_avance_ret_valid_session():
-    response = client.get("/avance_reticular", cookies=login_and_get_cookies())
+    session_1_cookies = login_and_get_cookies()
+    response = client.get("/avance_reticular", cookies=session_1_cookies)
     assert response.status_code == status.HTTP_200_OK
 
 
@@ -119,8 +121,9 @@ def test_grupos_cargados_invalid_session():
 
 
 def test_grupos_cargados_valid_session():
-    response = client.get("/grupos_cargados", cookies=login_and_get_cookies())
-    response.status_code == status.HTTP_200_OK
+    session_1_cookies = login_and_get_cookies()
+    response_client_1_session = client.get("/grupos_cargados", cookies=session_1_cookies)
+    assert response_client_1_session.status_code == status.HTTP_200_OK
 
 
 def test_signout_no_session():
