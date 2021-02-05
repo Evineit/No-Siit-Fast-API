@@ -104,7 +104,7 @@ def avance_reticular(phpsessid: str = Cookie(None, alias='PHPSESSID')):
 
 
 @app.get('/grupos_cargados')
-def avance_reticular(phpsessid: str = Cookie(None, alias='PHPSESSID')):
+def grupos_cargados(phpsessid: str = Cookie(None, alias='PHPSESSID')):
     check_authorized_and_open(phpsessid, URL='modulos/alu//inscripciones/consulta_horarios/consultar_horarios_cargados.php')
     return str(browser.get_current_page())
 
