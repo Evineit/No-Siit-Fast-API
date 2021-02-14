@@ -126,6 +126,22 @@ def test_grupos_cargados_valid_session():
     assert response_client_1_session.status_code == status.HTTP_200_OK
 
 
+def test_horario_no_session():
+    response = client.get("/horario")
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_horario_invalid_session():
+    response = client.get("/horario", cookies={"PHPSESSID": "test"})
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_horario_valid_session():
+    session_cookies = login_and_get_cookies()
+    response_1 = client.get("/horario", cookies=session_cookies)
+    assert response_1.status_code == status.HTTP_200_OK
+
+
 def test_signout_no_session():
     response = client.get("/signout")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
