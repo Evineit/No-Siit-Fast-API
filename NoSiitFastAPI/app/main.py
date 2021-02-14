@@ -109,6 +109,11 @@ def grupos_cargados(phpsessid: str = Cookie(None, alias='PHPSESSID')):
     return str(browser.get_current_page())
 
 
+@app.get('/horario')
+def horario(phpsessid: str = Cookie(None, alias='PHPSESSID')):
+    check_authorized_and_open(phpsessid, URL='modulos/cons/alumnos/horario_alumno.php')
+    return str(browser.get_current_page())
+
 @app.get('/session')
 def session(phpsessid: str = Cookie(None, alias='PHPSESSID')):
     if not phpsessid:
