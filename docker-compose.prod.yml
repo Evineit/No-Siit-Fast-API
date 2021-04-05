@@ -9,14 +9,15 @@ services:
       - ./NoSiitFastAPI/app/.env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.fastapi.rule=Host(`api.nosiit.live`)"
+      - "traefik.http.routers.fastapi.rule=Host(`backend.nosiit.live`)"
       - "traefik.http.routers.fastapi.tls=true"
       - "traefik.http.routers.fastapi.tls.certresolver=letsencrypt"
   traefik:
-    image: traefik:v2.2
+    image: traefik:v2.4
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "$PWD/services/traefik/traefik.prod.toml:/etc/traefik/traefik.toml"    
+      - "./services/traefik/traefik.prod.toml:/etc/traefik/traefik.toml"    
+      - "./services/traefik/acme.json:/acme.json"
